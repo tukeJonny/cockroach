@@ -15,8 +15,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 364,
-  "iteration": 1617893093983,
+  "id": 369,
+  "iteration": 1617987281652,
   "links": [],
   "panels": [
     {
@@ -24,7 +24,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": null,
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -35,12 +35,12 @@
       "fillGradient": 0,
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
         "y": 0
       },
       "hiddenSeries": false,
-      "id": 14,
+      "id": 16,
       "legend": {
         "avg": false,
         "current": false,
@@ -51,8 +51,8 @@
         "values": false
       },
       "lines": true,
-      "linewidth": 2,
-      "nullPointMode": "null as zero",
+      "linewidth": 1,
+      "nullPointMode": "null",
       "options": {
         "alertThreshold": true
       },
@@ -67,9 +67,8 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "clock_offset_meannanos{job=\"cockroachdb\",instance=~\"$node\",cluster=~\"$cluster\"}",
+          "expr": "sum(rate(sysbytes{job=\"cockroachdb\",cluster=\"$cluster\"}[$__rate_interval]))",
           "interval": "",
-          "intervalFactor": 2,
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -78,7 +77,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Clock Offset",
+      "title": "logical Bytes per store",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -94,11 +93,106 @@
       },
       "yaxes": [
         {
-          "format": "µs",
-          "label": "offset (us)",
+          "format": "decgbytes",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
           "logBase": 1,
           "max": null,
           "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "hiddenSeries": false,
+      "id": 14,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.7",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(rate(sql_query_count{job=\"cockroachdb\",cluster=\"$cluster\",instance=~\"$node\"}[$__rate_interval]))",
+          "interval": "",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Average Queries per Store",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "",
+          "logBase": 1,
+          "max": null,
+          "min": "0",
           "show": true
         },
         {
@@ -131,9 +225,9 @@
       "fillGradient": 0,
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 8
+        "y": 15
       },
       "hiddenSeries": false,
       "id": 12,
@@ -163,18 +257,46 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(rate(sys_gc_pause_ns{job=\"cockroachdb\",cluster=\"$cluster\",instance=~\"$node\"}[$rate_interval]))",
+          "expr": "sum(rate(range_snapshots_generated{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}[$rate_interval]))",
           "interval": "",
           "intervalFactor": 2,
-          "legendFormat": "GC pause Time",
+          "legendFormat": "Generated",
           "refId": "A"
+        },
+        {
+          "expr": "sum(rate(range_snapshots_normal_applied{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}[$rate_interval]))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Applied(raft-initiated)",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(range_snapshots_preemptive_applied{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}[$rate_interval]))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Applied(leaner)",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(rate(capacity_reserved{cluster=~\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}[$__rate_interval]))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Reserved capacity",
+          "refId": "D"
+        },
+        {
+          "expr": "sum(rate(replicas_reserved{cluster=~\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}[$__rate_interval]))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Reserved Replicas",
+          "refId": "E"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "GC pauses",
+      "title": "Snapshots",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -190,8 +312,8 @@
       },
       "yaxes": [
         {
-          "format": "ns",
-          "label": "Puase time (ms)",
+          "format": "ops",
+          "label": "Snapshots",
           "logBase": 1,
           "max": null,
           "min": "0",
@@ -199,10 +321,10 @@
         },
         {
           "format": "short",
-          "label": null,
+          "label": "Reservations",
           "logBase": 1,
           "max": null,
-          "min": null,
+          "min": "0",
           "show": true
         }
       ],
@@ -216,7 +338,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": null,
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -227,9 +349,9 @@
       "fillGradient": 0,
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 16
+        "y": 23
       },
       "hiddenSeries": false,
       "id": 10,
@@ -259,18 +381,60 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(sys_goroutines{job=\"cockroachdb\",cluster=\"$cluster\"})",
+          "expr": "sum(sum(rate(range_splits{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}[$rate_interval])) by (instance))",
           "interval": "",
           "intervalFactor": 2,
-          "legendFormat": "Goroutines",
+          "legendFormat": "Splits",
           "refId": "A"
+        },
+        {
+          "expr": "sum(sum(rate(range_adds{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}[$rate_interval])) by (instance))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Adds",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(sum(rate(range_merges{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}[$rate_interval])) by (instance))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Merges",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(sum(rate(range_removes{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}[$rate_interval])) by (instance))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Removes",
+          "refId": "D"
+        },
+        {
+          "expr": "sum(sum(rate(range_raftleadertransfers{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}[$rate_interval])) by (instance))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "leader Transfers",
+          "refId": "E"
+        },
+        {
+          "expr": "sum(sum(rate(rebalancing_lease_transfers{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}[$rate_interval])) by (instance))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Load-based Lease Transfers",
+          "refId": "F"
+        },
+        {
+          "expr": "sum(sum(rate(rebalancing_range_rebalances{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}[$rate_interval])) by (instance))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Load-based Range Rebalances",
+          "refId": "G"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Go routines count",
+      "title": "Range Operations",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -287,7 +451,207 @@
       "yaxes": [
         {
           "format": "short",
-          "label": "goroutine",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "hiddenSeries": false,
+      "id": 8,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 2,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.7",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(sum(replicas{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}) by (instance))  ",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Replicas",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(sum(replicas_quiescent{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}) by (instance))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Quiescent",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Replica Quiescene",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": "0",
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "hiddenSeries": false,
+      "id": 6,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 2,
+      "nullPointMode": "null as zero",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.3.7",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "sum(replicas_leaseholders{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}) by (instance)",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Replicase lease holders Per Node",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": null,
           "logBase": 1,
           "max": null,
           "min": "0",
@@ -323,210 +687,9 @@
       "fillGradient": 0,
       "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 24
-      },
-      "hiddenSeries": false,
-      "id": 8,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "7.3.7",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "sum(rate(sys_gc_count{job=\"cockroachdb\",cluster=\"$cluster\",instance=~\"$node\"}[$rate_interval]))",
-          "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "GC Runs",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "GC runs",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": "runs",
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 32
-      },
-      "hiddenSeries": false,
-      "id": 6,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 2,
-      "nullPointMode": "null as zero",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "7.3.7",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "sum(rate(sys_cpu_user_ns{job=\"cockroachdb\",cluster=\"$cluster\",instance=~\"$node\"}[$__rate_interval]))",
-          "instant": false,
-          "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "User CPU time",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(rate(sys_cpu_sys_ns{job=\"cockroachdb\",cluster=\"$cluster\",instance=~\"$node\"}[$__rate_interval]))",
-          "instant": false,
-          "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "Sys CPU time",
-          "refId": "B"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "CPU time",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "ns",
-          "label": "cpu time (s)",
-          "logBase": 1,
-          "max": null,
-          "min": "0",
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 40
+        "y": 49
       },
       "hiddenSeries": false,
       "id": 4,
@@ -556,46 +719,18 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum(sys_rss{job=\"cockroachdb\",cluster=\"$cluster\",instance=~\"$node\"})",
+          "expr": "sum(replicas{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}) by (instance)",
           "interval": "",
           "intervalFactor": 2,
-          "legendFormat": "RSS",
+          "legendFormat": "{{instance}}",
           "refId": "A"
-        },
-        {
-          "expr": "sum(sys_cgo_allocbytes{job=\"cockroachdb\",cluster=\"$cluster\",instance=~\"$node\"})",
-          "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "Go Allocated",
-          "refId": "B"
-        },
-        {
-          "expr": "sum(sys_go_allocbytes{job=\"cockroachdb\",cluster=\"$cluster\",instance=~\"$node\"})",
-          "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "CGo Allocated",
-          "refId": "C"
-        },
-        {
-          "expr": "sum(sys_go_totalbytes{job=\"cockroachdb\",cluster=\"$cluster\",instance=~\"$node\"})",
-          "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "Go Total",
-          "refId": "D"
-        },
-        {
-          "expr": "sum(sys_cgo_totalbytes{job=\"cockroachdb\",cluster=\"$cluster\",instance=~\"$node\"})",
-          "interval": "",
-          "intervalFactor": 2,
-          "legendFormat": "CGo Total",
-          "refId": "E"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Memory Usage",
+      "title": "Replicas Per Store",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -611,15 +746,15 @@
       },
       "yaxes": [
         {
-          "format": "bytes",
-          "label": "memory Usage (TiB)",
+          "format": "short",
+          "label": null,
           "logBase": 1,
           "max": null,
           "min": "0",
           "show": true
         },
         {
-          "format": "bytes",
+          "format": "short",
           "label": null,
           "logBase": 1,
           "max": null,
@@ -637,7 +772,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": null,
       "fieldConfig": {
         "defaults": {
           "custom": {}
@@ -647,10 +782,10 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 9,
+        "w": 24,
         "x": 0,
-        "y": 48
+        "y": 57
       },
       "hiddenSeries": false,
       "id": 2,
@@ -664,8 +799,8 @@
         "values": false
       },
       "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null as zero",
+      "linewidth": 2,
+      "nullPointMode": "null",
       "options": {
         "alertThreshold": true
       },
@@ -680,18 +815,65 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "min(liveness_livenodes{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"})",
+          "expr": "sum(sum(replicas_leaseholders{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"})) by (instance)",
           "interval": "",
           "intervalFactor": 2,
-          "legendFormat": "Live nodes (node liveness heartbeats)",
+          "legendFormat": "Ranges",
           "refId": "A"
+        },
+        {
+          "expr": "sum(sum(replicas_leaders{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}) by (instance))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Leaders",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(sum(replicas_leaders_not_leaseholders{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}) by (instance))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Leaders W/O Lease Holders",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(sum(ranges_unavailable{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}) by (instance))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Unavailable",
+          "refId": "D"
+        },
+        {
+          "expr": "sum(sum(ranges_underreplicated{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}) by (instance))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "under-replicated",
+          "refId": "E"
+        },
+        {
+          "expr": "sum(sum(ranges_overreplicated{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}) by (instance))",
+          "interval": "",
+          "intervalFactor": 2,
+          "legendFormat": "Over-replicated",
+          "refId": "F"
+        },
+        {
+          "expr": "sum(sum(replicas_leaseholders{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}) by (instance))",
+          "interval": "",
+          "legendFormat": "Lease Holders",
+          "refId": "G"
+        },
+        {
+          "expr": "leasehol",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "H"
         }
       ],
       "thresholds": [],
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Live Node Count",
+      "title": "Ranges :$node",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -708,10 +890,10 @@
       "yaxes": [
         {
           "format": "short",
-          "label": "nodes",
+          "label": null,
           "logBase": 1,
           "max": null,
-          "min": "0",
+          "min": null,
           "show": true
         },
         {
@@ -745,64 +927,10 @@
         "type": "datasource"
       },
       {
-        "allValue": null,
-        "current": {},
-        "datasource": "${DS_PROMETHEUS}",
-        "definition": "sys_uptime{job=\"cockroachdb\"}",
-        "error": null,
-        "hide": 0,
-        "includeAll": false,
-        "label": "Cluster Filter",
-        "multi": false,
-        "name": "cluster",
-        "options": [],
-        "query": "sys_uptime{job=\"cockroachdb\"}",
-        "refresh": 1,
-        "regex": "/cluster=\"([^\"]+)\"/",
-        "skipUrlSync": false,
-        "sort": 1,
-        "tagValuesQuery": "",
-        "tags": [],
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
-      },
-      {
-        "allValue": ".*",
-        "current": {
-          "selected": false,
-          "text": "All",
-          "value": "$__all"
-        },
-        "datasource": "${DS_PROMETHEUS}",
-        "definition": "label_values(sys_uptime{job=\"cockroachdb\",cluster=\"$cluster\"},instance)",
-        "error": null,
-        "hide": 0,
-        "includeAll": true,
-        "label": "Node",
-        "multi": false,
-        "name": "node",
-        "options": [],
-        "query": "label_values(sys_uptime{job=\"cockroachdb\",cluster=\"$cluster\"},instance)",
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 3,
-        "tagValuesQuery": "",
-        "tags": [],
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
-      },
-      {
         "auto": false,
         "auto_count": 30,
         "auto_min": "10s",
-        "current": {
-          "selected": false,
-          "text": "30s",
-          "value": "30s"
-        },
+        "current": {},
         "error": null,
         "hide": 0,
         "label": "Rate Interval",
@@ -825,8 +953,8 @@
           },
           {
             "selected": false,
-            "text": "10m",
-            "value": "10m"
+            "text": "15m",
+            "value": "15m"
           },
           {
             "selected": false,
@@ -840,13 +968,8 @@
           },
           {
             "selected": false,
-            "text": "6h",
-            "value": "6h"
-          },
-          {
-            "selected": false,
-            "text": "12h",
-            "value": "12h"
+            "text": "2h",
+            "value": "2h"
           },
           {
             "selected": false,
@@ -854,26 +977,49 @@
             "value": "1d"
           }
         ],
-        "query": "30s,1m,5m,10m,30m,1h,6h,12h,1d",
+        "query": "30s,1m,5m,15m,30m,1h,2h,1d",
         "refresh": 2,
         "skipUrlSync": false,
         "type": "interval"
       },
       {
+        "allValue": null,
+        "current": {},
+        "datasource": "${DS_PROMETHEUS}",
+        "definition": "sys_uptime{job=\"cockroachdb\"}",
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": "Cluster",
+        "multi": false,
+        "name": "cluster",
+        "options": [],
+        "query": "sys_uptime{job=\"cockroachdb\"}",
+        "refresh": 1,
+        "regex": "/cluster=\"([^\"]+)\"/",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
         "allValue": ".*",
         "current": {},
         "datasource": "${DS_PROMETHEUS}",
-        "definition": "raftlog_behind{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}",
+        "definition": "label_values(sys_uptime{job=\"cockroachdb\",cluster=\"$cluster\"},instance)",
         "error": null,
         "hide": 0,
         "includeAll": true,
-        "label": "crdb_node",
+        "label": "Node",
         "multi": false,
-        "name": "crdb_node",
+        "name": "node",
         "options": [],
-        "query": "raftlog_behind{cluster=\"$cluster\",job=\"cockroachdb\",instance=~\"$node\"}",
+        "query": "label_values(sys_uptime{job=\"cockroachdb\",cluster=\"$cluster\"},instance)",
         "refresh": 1,
-        "regex": "/store=\"([^\"]+)\"/",
+        "regex": "",
         "skipUrlSync": false,
         "sort": 3,
         "tagValuesQuery": "",
@@ -890,7 +1036,7 @@
   },
   "timepicker": {},
   "timezone": "utc",
-  "title": "CRDB Console: Runtime",
-  "uid": "crdb-console-runtime",
-  "version": 16
+  "title": "CBDB Console:  Replications",
+  "uid": "cbdb-console-replications",
+  "version": 17
 }
